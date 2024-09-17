@@ -68,6 +68,10 @@
     text-decoration: none;
 }
 
+.get-aura-btn:disabled {
+  background-color: 	#3b3b3b;
+}
+
 .auraimg, .errormsg {
   margin:40px 0;
 }
