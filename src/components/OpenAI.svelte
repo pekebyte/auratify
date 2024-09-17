@@ -34,6 +34,19 @@
     }
     
   }
+
+  async function downloadImage() {
+  const image = await fetch(auraImage, {mode: 'no-cors'});
+  const imageBlog = await image.blob()
+  const imageURL = URL.createObjectURL(imageBlog)
+
+  const link = document.createElement('a')
+  link.href = imageURL
+  link.download = auraImage.match(/[\w-]+\.(jpg|png|txt)/g);
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 </script>
 <style>
   .get-aura-btn {
@@ -64,7 +77,7 @@
 {#if auraImage}
   <div class="auraimg">
     <img src={auraImage} alt="Generated Aura" style="width: 100%; height: auto;" />
-    <a download href="{auraImage}" class="get-aura-btn" target="_blank"> Download Image</a>
+    <button class="get-aura-btn" on:click={downloadImage}> Download Image</button>
   </div>
 
 {/if}
