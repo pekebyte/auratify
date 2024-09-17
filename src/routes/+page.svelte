@@ -35,6 +35,13 @@ header p {
     font-size: 1.2em;
     margin-top: 0.5em;
 }
+footer {
+	margin: 40px 0;
+}
+footer a {
+	color: #fff;
+	text-decoration: underline;
+}
 </style>
 <div class="container">
 	<header>
@@ -42,4 +49,7 @@ header p {
 		<p>Get your generative AI mystic aura image based on your top Spotify artists.</p>
 	</header>
 	<Spotify />
+	<footer>
+		Made with love by <a href="https://pekebyte.com/" target="_blank">Pekebyte</a>
+	</footer>
 </div>
