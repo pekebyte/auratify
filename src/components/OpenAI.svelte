@@ -10,7 +10,7 @@
   let generating = false;
 
   async function generateAura() {
-    const prompt = `Generate an Instagram story-sized image that imagines and create an mystic aura, blending neon lights, vibrant colors, and dynamic shapes, and please no any kind of text in it, inspired by following genres: ${topArtists.map(artist => artist.genres.join(", ")).join(", ")}.`;
+    const prompt = `Generate an image that creates a mystic aura, blending neon lights, vibrant colors, and dynamic abstract shapes. The design should evoke inspiration from ${topArtists.map(artist => artist.genres.join(", ")).join(", ")}.`;
     try {
       generating = true;
     const response = await axios.post('https://api.openai.com/v1/images/generations', {
