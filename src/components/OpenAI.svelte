@@ -13,6 +13,7 @@
     const prompt = `Generate an image that creates a mystic aura, blending neon lights, vibrant colors, and dynamic abstract shapes. The design should evoke inspiration from these music genres: ${topArtists.map(artist => artist.genres.join(", ")).join(", ")}.`;
     try {
       generating = true;
+      aiError = false;
     const response = await axios.post('https://api.openai.com/v1/images/generations', {
       prompt,
       n: 1,
