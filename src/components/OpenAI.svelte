@@ -26,7 +26,7 @@
       },
     });
     auraImage = response.data.data[0].url;
-    generating = false;
+    generating = true;
     }
     catch (error) {
       auraImage = '';

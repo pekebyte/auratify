@@ -18,13 +18,21 @@
 
 	// Fetch user's top artists from Spotify
 	let topArtists = [];
+	let apiError = false;
+	let apiCall = false;
 	async function getTopArtists() {
+		try {
 		const response = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=5', {
 			headers: {
 				Authorization: `Bearer ${accessToken}`
 			}
 		});
 		topArtists = response.data.items;
+		apiCall = true;
+		} catch (error) {
+			apiError = true;
+			apiCall = true;
+		}
 	}
 
 	onMount(() => {
@@ -75,7 +83,7 @@
 	<div class="login-section">
 		<button id="login-btn" class="login-btn" on:click={loginSpotify}>Login with Spotify</button>
 	</div>
-{:else}
+{:else if topArtists.length > 0}
 	<div id="content">
 		<h2>Your Top Artists are:</h2>
 		<ul>
@@ -87,4 +95,8 @@
 			<OpenAI {topArtists} />
 		{/if}
 	</div>
+{:else if (apiCall === true) && (topArtists.length == 0 || apiError === true) }
+<div id="content">
+	<div class="errormsg"><span style="color:red;"><strong>We couldn't retrive your Top Artists from Spotify, please try again later.</strong></span></div>
+</div>
 {/if}
