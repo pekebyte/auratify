@@ -113,20 +113,28 @@
 		font-size: 1.2em;
 		margin: 15px 0;
 		padding: 15px;
-		background-color: #f8f9fa;
+		background-color: #ffffff;
+		border: 1px solid #e0e0e0;
 		border-radius: 10px;
 		border-left: 4px solid #1db954;
-		transition: transform 0.2s ease;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 	}
 
 	.artist-item:hover {
 		transform: translateX(5px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	}
+
+	.artist-item strong {
+		color: #222;
+		font-weight: 600;
 	}
 
 	.artist-genres {
 		font-size: 0.9em;
 		color: #666;
-		margin-top: 5px;
+		margin-top: 8px;
 		font-style: italic;
 	}
 
