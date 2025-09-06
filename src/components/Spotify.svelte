@@ -3,13 +3,17 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import OpenAI from './OpenAI.svelte';
-	import { PUBLIC_SPOTIFYCLIENTID } from '$env/static/public';
-	//Access Token
+	import { PUBLIC_SPOTIFYCLIENTID } from '$env/static/public'; // This is OK to keep!
+	
 	let accessToken = '';
+	let topArtists = [];
+	let apiError = false;
+	let apiCall = false;
+	let loadingArtists = false;
 
-	// URL for Spotify authentication (update your client ID and redirect URL)
-	const redirectURL = $page.url;
-	const authURL = `https://accounts.spotify.com/authorize?client_id=${PUBLIC_SPOTIFYCLIENTID}&response_type=token&redirect_uri=${redirectURL}&scope=user-top-read`;
+	// URL for Spotify authentication
+	const redirectURL = $page.url.origin + $page.url.pathname;
+	const authURL = `https://accounts.spotify.com/authorize?client_id=${PUBLIC_SPOTIFYCLIENTID}&response_type=token&redirect_uri=${encodeURIComponent(redirectURL)}&scope=user-top-read`;
 
 	// Redirect user to Spotify to authenticate
 	function loginSpotify() {
@@ -17,86 +21,194 @@
 	}
 
 	// Fetch user's top artists from Spotify
-	let topArtists = [];
-	let apiError = false;
-	let apiCall = false;
 	async function getTopArtists() {
 		try {
-		const response = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=5', {
-			headers: {
-				Authorization: `Bearer ${accessToken}`
-			}
-		});
-		topArtists = response.data.items;
-		apiCall = true;
+			loadingArtists = true;
+			apiError = false;
+			
+			const response = await axios.get('https://api.spotify.com/v1/me/top/artists?limit=5', {
+				headers: {
+					Authorization: `Bearer ${accessToken}`
+				}
+			});
+			
+			topArtists = response.data.items;
+			apiCall = true;
 		} catch (error) {
+			console.error('Spotify API error:', error);
 			apiError = true;
 			apiCall = true;
+		} finally {
+			loadingArtists = false;
 		}
 	}
 
 	onMount(() => {
-		// Extract access token from URL
+		// Extract access token from URL hash
 		if (window.location.hash) {
-			accessToken = window.location.hash.split('=')[1].split('&')[0];
-			window.history.pushState('', document.title, window.location.pathname);
+			const hashParams = new URLSearchParams(window.location.hash.substring(1));
+			accessToken = hashParams.get('access_token') || '';
+			
+			if (accessToken) {
+				// Clean URL without refresh
+				window.history.pushState('', document.title, window.location.pathname);
+			}
 		}
 	});
 
-	$: if (accessToken) {
+	// Reactive statement to fetch artists when token is available
+	$: if (accessToken && !loadingArtists && !apiCall) {
 		getTopArtists();
 	}
 </script>
+
 <style>
 	.login-btn {
-    background-color: #ff007f;
-    color: white;
-    font-size: 1.2em;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.3s ease;
-}
+		background-color: #1db954; /* Spotify green */
+		color: white;
+		font-size: 1.2em;
+		padding: 15px 30px;
+		border: none;
+		border-radius: 30px;
+		cursor: pointer;
+		margin-top: 20px;
+		transition: all 0.3s ease;
+		font-family: inherit;
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+	}
 
-.login-btn:hover {
-    background-color: #00d4ff;
-}
+	.login-btn:hover {
+		background-color: #1ed760;
+		transform: translateY(-1px);
+	}
 
-#content {
-    margin-top: 40px;
-}
+	.login-section {
+		text-align: center;
+		margin: 40px 0;
+	}
 
-#artist-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+	.login-section h2 {
+		color: #1db954;
+		margin-bottom: 10px;
+	}
 
-#artist-list li {
-    font-size: 1.2em;
-    margin: 10px 0;
-}
+	.login-section p {
+		color: #666;
+		margin-bottom: 20px;
+	}
+
+	#content {
+		margin-top: 40px;
+	}
+
+	.artists-list {
+		list-style: none;
+		padding: 0;
+		margin: 20px 0;
+	}
+
+	.artist-item {
+		font-size: 1.2em;
+		margin: 15px 0;
+		padding: 15px;
+		background-color: #f8f9fa;
+		border-radius: 10px;
+		border-left: 4px solid #1db954;
+		transition: transform 0.2s ease;
+	}
+
+	.artist-item:hover {
+		transform: translateX(5px);
+	}
+
+	.artist-genres {
+		font-size: 0.9em;
+		color: #666;
+		margin-top: 5px;
+		font-style: italic;
+	}
+
+	.loading-message {
+		text-align: center;
+		color: #666;
+		font-style: italic;
+		margin: 40px 0;
+		font-size: 1.1em;
+	}
+
+	.error-message {
+		color: #ff4444;
+		font-weight: bold;
+		background-color: #ffe6e6;
+		padding: 20px;
+		border-radius: 10px;
+		border-left: 4px solid #ff4444;
+		margin: 20px 0;
+	}
+
+	.success-header {
+		color: #1db954;
+		margin-bottom: 20px;
+	}
+
+	.retry-btn {
+		background-color: #ff6b6b;
+		margin-top: 15px;
+	}
+
+	.retry-btn:hover {
+		background-color: #ff5252;
+	}
 </style>
+
 {#if !accessToken}
 	<div class="login-section">
-		<button id="login-btn" class="login-btn" on:click={loginSpotify}>Login with Spotify</button>
+		<h2>🎵 Connect Your Spotify Account</h2>
+		<p>Login to generate your personalized music aura based on your top artists</p>
+		<button class="login-btn" on:click={loginSpotify}>
+			<span>🎵</span>
+			Login with Spotify
+		</button>
+	</div>
+{:else if loadingArtists}
+	<div class="loading-message">
+		🎵 Fetching your top artists from Spotify...
 	</div>
 {:else if topArtists.length > 0}
 	<div id="content">
-		<h2>Your Top Artists are:</h2>
-		<ul>
-		{#each topArtists as artist}
-			<li>{artist.name}</li>
-		{/each}
+		<h2 class="success-header">🎉 Your Top Artists:</h2>
+		<ul class="artists-list">
+			{#each topArtists as artist}
+				<li class="artist-item">
+					<strong>{artist.name}</strong>
+					{#if artist.genres && artist.genres.length > 0}
+						<div class="artist-genres">
+							Genres: {artist.genres.slice(0, 3).join(" • ")}
+						</div>
+					{/if}
+				</li>
+			{/each}
 		</ul>
-		{#if typeof topArtists !== 'undefined'}
-			<OpenAI {topArtists} />
-		{/if}
+		
+		<OpenAI {topArtists} />
 	</div>
-{:else if (apiCall === true) && (topArtists.length == 0 || apiError === true) }
-<div id="content">
-	<div class="errormsg"><span style="color:red;"><strong>We couldn't retrive your Top Artists from Spotify, please try again later.</strong></span></div>
-</div>
+{:else if apiCall && (topArtists.length === 0 || apiError)}
+	<div id="content">
+		<div class="error-message">
+			❌ We couldn't retrieve your top artists from Spotify.
+			<br><br>
+			<small>
+				This might happen if:
+				<br>• You don't have enough listening history
+				<br>• Your Spotify account is new
+				<br>• There was a temporary connection issue
+			</small>
+			<br>
+			<button class="login-btn retry-btn" on:click={() => window.location.reload()}>
+				🔄 Try Again
+			</button>
+		</div>
+	</div>
 {/if}
